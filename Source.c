@@ -127,8 +127,8 @@ int inicializa(){
 	fila();
 	// Configura o título da janela
 	al_set_window_title(janela, "Genius");
-	/*al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
-	al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);*/
+	al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
+	al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);
 	return 1;
 }
 
@@ -361,9 +361,9 @@ void nivelJogo(){
 void genius(int level){
 	int vetor[1000], vetor2[1000], vetor3[1000];
 	ALLEGRO_BITMAP *verde = 0, *amarelo = 0, *azul = 0, *vermelho = 0;
-	ALLEGRO_BITMAP *imagem = NULL;
+	ALLEGRO_BITMAP *imagem = NULL, *som = NULL;
 	// Flag que condicionará nosso looping
-	int sair = 0, i = 0, flag = -1, perdeu = 0;
+	int sair = 0, i = 0, flag = -1, perdeu = 0, flag_Som = 0;
 
 	// Alocamos as cores
 	verde = al_load_bitmap("VerdeNeon.png");
@@ -372,7 +372,7 @@ void genius(int level){
 	vermelho = al_load_bitmap("VermelhoNeon.png");
 	//Alocamos o fundo
 	imagem = al_load_bitmap("Genius.png");
-
+	som = al_load_bitmap("Som.png");
 	//Nivel
 	if (level != 1){
 		gerando_nivel(level, vetor, 1, imagem, verde, amarelo, azul, vermelho);
@@ -390,14 +390,13 @@ void genius(int level){
 		al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
 		al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
 		al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
+		al_draw_bitmap(som, 0, 0, 0);
 		al_flip_display();
 		piscaSequencia(vetor, verde, amarelo, azul, vermelho, 0);
 		flag++;
 	}
 
-	//Quando o sair for 3 é pq os dois erraram
 	while (!sair){
-		
 		//Gerando a jogada
 		if (i == nivel){
 			al_rest(0.5);
@@ -424,6 +423,7 @@ void genius(int level){
 		al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
 		al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
 		al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
+		al_draw_bitmap(som, 0, 0, 0);
 		al_flip_display();
 
 		// Verificamos se há eventos na fila
@@ -431,111 +431,63 @@ void genius(int level){
 			ALLEGRO_EVENT evento;
 			al_wait_for_event(fila_eventos, &evento);
 
-			// Se o evento foi de click do mouse
+			//Se o evento foi de click do mouse
 			if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN){
 				if (area_verde(evento.mouse.x, evento.mouse.y)){// Verificamos se ele está sobre a região do verde
-					if (flag % qtdJogadores == 0){
-						if (vetor[i] == 0){
-							al_draw_bitmap(verde, 85, 40, 0);
-							i++;
-						}else{
-							perdeu = 1;
-						}
+					if (flag % qtdJogadores == 0){//Verifica quem ta jogando
+						perdeu = verifica(vetor[i], 0, verde, &i, 85, 40);//Verificando se ele acertou a jogada
 					}else if(flag % qtdJogadores == 1){
-						if (vetor2[i] == 0){
-							al_draw_bitmap(verde, 85, 40, 0);
-							i++;
-						}else{
-							perdeu = 2;
-						}
+						perdeu = verifica(vetor2[i], 0, verde, &i, 85, 40);
 					}else{
-						if (vetor3[i] == 0){
-							al_draw_bitmap(verde, 85, 40, 0);
-							i++;
-						}else{
-							perdeu = 3;
-						}
+						perdeu = verifica(vetor3[i], 0, verde, &i, 85, 40);
 					}
 				}else if (area_amarela(evento.mouse.x, evento.mouse.y)){ // Verificamos se ele está sobre a região no amarelo
-					if (flag % qtdJogadores == 0){
-						if (vetor[i] == 1){
-							al_draw_bitmap(amarelo, 85, 238, 0);
-							i++;
-						}else{
-							perdeu = 1;
-						}
+					if (flag % qtdJogadores == 0){//Verifica quem ta jogando
+						perdeu = verifica(vetor[i], 1, amarelo, &i, 85, 238);
 					}else if(flag % qtdJogadores == 1){
-						if (vetor2[i] == 1){
-							al_draw_bitmap(amarelo, 85, 238, 0);
-							i++;
-						}else{
-							perdeu = 2;
-						}
+						perdeu = verifica(vetor2[i], 1, amarelo, &i, 85, 238);
 					}else{
-						if (vetor3[i] == 1){
-							al_draw_bitmap(amarelo, 85, 238, 0);
-							i++;
-						}else{
-							perdeu = 3;
-						}
+						perdeu = verifica(vetor3[i], 1, amarelo, &i, 85, 238);
 					}
 				}else if (area_azul(evento.mouse.x, evento.mouse.y)){// Verificamos se ele está sobre a região no azul
-					if (flag % qtdJogadores == 0){
-						if (vetor[i] == 2){
-							al_draw_bitmap(azul, 284, 238, 0);
-							i++;
-						}else{
-							perdeu = 1;
-						}
+					if (flag % qtdJogadores == 0){//Verifica quem ta jogando
+						perdeu = verifica(vetor[i], 2, azul, &i, 284, 238);
 					}else if(flag % qtdJogadores == 1){
-						if (vetor2[i] == 2){
-							al_draw_bitmap(azul, 284, 238, 0);
-							i++;
-						}else{
-							perdeu = 2;
-						}
+						perdeu = verifica(vetor2[i], 2, azul, &i, 284, 238);
 					}else{
-						if (vetor3[i] == 2){
-							al_draw_bitmap(azul, 284, 238, 0);
-							i++;
-						}else{
-							perdeu = 3;
-						}
+						perdeu = verifica(vetor3[i], 2, azul, &i, 284, 238);
 					}
-				}else if (area_vermelha(evento.mouse.x, evento.mouse.y)){// Verificamos se ele está sobre a região no vermelho
-					if (flag % qtdJogadores == 0){
-						if (vetor[i] == 3){
-							al_draw_bitmap(vermelho, 284, 40, 0);
-							i++;
-						}else{
-							perdeu = 1;
-						}
+				}else if (area_vermelha(evento.mouse.x, evento.mouse.y)){// Verificamos se ele está sobre a região no vermelho					
+					if (flag % qtdJogadores == 0){//Verifica quem ta jogando
+						perdeu = verifica(vetor[i], 3, vermelho, &i, 284, 40);
 					}else if(flag % qtdJogadores == 1){
-						if (vetor2[i] == 3){
-							al_draw_bitmap(vermelho, 284, 40, 0);
-							i++;
-						}else{
-							perdeu = 2;
-						}
+						perdeu = verifica(vetor2[i], 3, vermelho, &i, 284, 40);
 					}else{
-						if (vetor3[i] == 3){
-							al_draw_bitmap(vermelho, 284, 40, 0);
-							i++;
-						}else{
-							perdeu = 3;
-						}
+						perdeu = verifica(vetor3[i], 3, vermelho, &i, 284, 40);
+					}
+				}else if (evento.mouse.x >= 0 && evento.mouse.x <= 56 && evento.mouse.y >= 0 && evento.mouse.y <= 42) {//Caso a pessoa clique no icone do som
+					if (flag_Som == 0){//Verficando se o som vai ser reativado ou vai pro mudo
+						som = al_load_bitmap("Mudo.png");
+						flag_Som = 1;
+					}else{
+						som = al_load_bitmap("Som.png");
+						flag_Som = 0;
 					}
 				}
-				if (perdeu != 0){
-					errou(perdeu);
-					if (qtdJogadores > 1){
-						if (perdeu == 1){
+				if (perdeu != 0){//Quando alguem erra
+					errou((flag % qtdJogadores) + 1);
+					if (qtdJogadores > 1){//Se tiver mais de um jogador exibir os vencedores
+						if (flag % qtdJogadores == 0){
 							vencedor(2);
-							vencedor(3);
-						}else if(perdeu == 2){
+							if (qtdJogadores > 2){
+								vencedor(3);
+							}
+						}else if(flag % qtdJogadores == 1){
 							vencedor(1);
-							vencedor(3);
-						}else if(perdeu == 3){
+							if (qtdJogadores > 2) {
+								vencedor(3);
+							}
+						}else if(flag % qtdJogadores == 2){
 							vencedor(1);
 							vencedor(2);
 						}
@@ -551,6 +503,7 @@ void genius(int level){
 				al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
 				al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
 				al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
+				al_draw_bitmap(som, 0, 0, 0);
 				al_flip_display();
 			}else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE){//Quando o usuario clicar no X
 				sair = 1;
@@ -558,13 +511,22 @@ void genius(int level){
 			}
 		}
 	}
-
 	// Desaloca os recursos utilizados na aplicação
 	al_destroy_bitmap(verde);
 	al_destroy_bitmap(amarelo);
 	al_destroy_bitmap(azul);
 	al_destroy_bitmap(vermelho);
+	al_destroy_bitmap(imagem);
+}
 
+int verifica(int jogada, int pos, ALLEGRO_BITMAP *cor, int *i, int posX, int posY) {
+	if (jogada == pos) {
+		al_draw_bitmap(cor, posX, posY, 0);
+		(*i)++;
+	}else{
+		return 1;
+	}
+	return 0;
 }
 
 void gerando_nivel(int level, int vetor[],int joga, ALLEGRO_BITMAP *imagem, ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo, ALLEGRO_BITMAP *azul, ALLEGRO_BITMAP *vermelho){
@@ -602,18 +564,14 @@ void novoRecord(){
 					char temp[] = { evento.keyboard.unichar, '\0' };
 					if (evento.keyboard.unichar >= '0' && evento.keyboard.unichar <= '9'){
 						strcat(str, temp);
-					}
-					else if (evento.keyboard.unichar >= 'A' && evento.keyboard.unichar <= 'Z'){
+					}else if (evento.keyboard.unichar >= 'A' && evento.keyboard.unichar <= 'Z'){
+						strcat(str, temp);
+					}else if (evento.keyboard.unichar >= 'a' && evento.keyboard.unichar <= 'z'){
 						strcat(str, temp);
 					}
-					else if (evento.keyboard.unichar >= 'a' && evento.keyboard.unichar <= 'z'){
-						strcat(str, temp);
-					}
-				}
-				else{
+				}else{
 					sair = 1;
 				}
-
 				if (evento.keyboard.keycode == ALLEGRO_KEY_BACKSPACE && strlen(str) != 0){
 					str[strlen(str) - 1] = '\0';
 				}
