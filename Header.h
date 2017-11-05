@@ -1,6 +1,10 @@
+//
+// Created by mariana on 05/11/17.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "allegro5\allegro.h"
+#include "allegro5/allegro.h"
 #include "Types.h"
 
 int inicializa();
