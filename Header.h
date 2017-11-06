@@ -25,6 +25,7 @@ void modoJogo();//Tela do modo de jogo
 void nivelJogo();//Tela que exibe os niveis disponiveis
 void vencedor(int jogador);//Tela que exibe quem venceu
 void novoRecord();//Salva o recorde
+void salva_recorde();
 void printaBG(Tback *back);
 void atualizarBG(Tback *back);
 void InitBG(Tback *back, float x, float y, float velX, float velY, int largura, int altura, int dirX, int dirY, ALLEGRO_BITMAP *imagem);
