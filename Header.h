@@ -11,8 +11,9 @@ int inicializa();
 void fila();//Aqui inicializa a fila de eventos
 void tela_Inicial();//Tela Inicial
 void genius(int nivel);//Tela do jogo
+void instrucao();
 int verifica(int jogada, int pos, ALLEGRO_BITMAP *cor, int *i, int posX, int posY);//Verficando se a pessoa selecionou a cor certa
-void gerando_nivel(int level, int vetor[], int joga, ALLEGRO_BITMAP *imagem, ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo, ALLEGRO_BITMAP *azul, ALLEGRO_BITMAP *vermelho);//Gera o nivel 5 e 10
+void gerando_nivel(int level, int vetor[]);//Gera o nivel 5 e 10
 int area_verde(int x, int y);//Aqui o mapeamento da imagem da area verde
 int area_amarela(int x, int y);//Aqui o mapeamento da imagem da area amarela
 int area_azul(int x, int y);//Aqui o mapeamento da imagem da area azul
@@ -23,7 +24,7 @@ void errou(int jogador);//Tela pra mostrar q a pessoa errou
 void exibir_record();//Tela que exibe o recorde
 void modoJogo();//Tela do modo de jogo
 void nivelJogo();//Tela que exibe os niveis disponiveis
-void vencedor(int jogador);//Tela que exibe quem venceu
+void vencedor(char jogador[]);//Tela que exibe quem venceu
 void novoRecord();//Salva o recorde
 void salva_recorde();
 void printaBG(Tback *back);

@@ -31,6 +31,8 @@ ALLEGRO_FONT *font = NULL;
 ALLEGRO_AUDIO_STREAM *musica = NULL;
 ALLEGRO_BITMAP *animacao = NULL;
 
+Tback back;
+
 int nivel = 0, qtdJogadores = 0, flag_Som = 1;
 TUsuario usuario;
 char str[6];
@@ -44,7 +46,7 @@ int main() {
     }
 
     fseek(arq, -sizeof(TUsuario), 2);
-    tam = ftell(arq) + sizeof(TUsuario) / sizeof(TUsuario);
+    tam = (ftell(arq) + sizeof(TUsuario)) / sizeof(TUsuario);
     if (tam == 3) {
         status = fread(&usuario, sizeof(TUsuario), 1, arq);
         if (status != 1) {
@@ -54,6 +56,8 @@ int main() {
         usuario.recorde = 0;
         strcpy(usuario.nome, "");
     }
+
+    srand(time(NULL));
     tela_Inicial();
 
     al_destroy_display(janela);
@@ -104,9 +108,9 @@ int inicializa() {
         return 0;
     }
     //Inicializando a musica de fundo
-    musica = al_load_audio_stream("Sua cara.wav", 4, 1024);
+    musica = al_load_audio_stream("Mastruz.wav", 4, 1024);
     if (!musica) {
-        printf("Falha ao carregar \"Sua cara.wav\".\n");
+        printf("Falha ao carregar \"Jogo.wav\".\n");
         return 0;
     }
     animacao = al_load_bitmap("animacao_genius.png");
@@ -129,8 +133,9 @@ int inicializa() {
         return 0;
     }
     fila();
-    // Configura o t\EDtulo da janela
-    al_set_window_title(janela, "Genius");
+    InitBG(&back, 0, 0, 0.01, 0, LARGURA_TELA, ALTURA_TELA, -1, 1, animacao);
+    // Configura o titulo da janela
+    al_set_window_title(janela, "Simon");
     al_attach_audio_stream_to_mixer(musica, al_get_default_mixer());
     al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);
     return 1;
@@ -141,14 +146,12 @@ void fila() {
     if (!fila_eventos) {
         printf("Falha ao criar fila de eventos.\n");
     }
-    al_register_event_source(fila_eventos,
-                             al_get_mouse_event_source());// Dizemos que vamos tratar os eventos vindos do mouse
+    al_register_event_source(fila_eventos, al_get_mouse_event_source());// Dizemos que vamos tratar os eventos vindos do mouse
     al_register_event_source(fila_eventos, al_get_display_event_source(janela));//Tratando eventos do display
     al_register_event_source(fila_eventos, al_get_keyboard_event_source());//Eventos do teclado
 }
 
-void piscaSequencia(int vetor[], ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo, ALLEGRO_BITMAP *azul,
-                    ALLEGRO_BITMAP *vermelho, int flag) {
+void piscaSequencia(int vetor[], ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo, ALLEGRO_BITMAP *azul, ALLEGRO_BITMAP *vermelho, int flag) {
     ALLEGRO_BITMAP *fundo, *som;
     ALLEGRO_SAMPLE *verde_som = NULL, *amarelo_som = NULL, *azul_som = NULL, *vermelho_som = NULL;//Criando variaveis do som
     fundo = al_load_bitmap("Genius.png");
@@ -166,9 +169,8 @@ void piscaSequencia(int vetor[], ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo,
     //Aqui pisca a sequencia
     for (int j = 0; j < nivel; j++) {
         al_draw_bitmap(fundo, 0, 0, 0);
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
-        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d",
-                      flag % qtdJogadores + 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
         al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
         al_draw_bitmap(som, 0, 0, 0);
         if (vetor[j] == 0) {
@@ -196,9 +198,8 @@ void piscaSequencia(int vetor[], ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo,
         al_rest(0.5);
 
         al_draw_bitmap(fundo, 0, 0, 0);
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
-        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d",
-                      flag % qtdJogadores + 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
         al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
         al_draw_bitmap(som, 0, 0, 0);
         al_flip_display();
@@ -214,7 +215,6 @@ void piscaSequencia(int vetor[], ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo,
 void sequencia(int vetor[]) {
     int aleatorio;
     //Aqui gera a sequencia
-    srand(time(NULL));
     aleatorio = rand() % 4;
     vetor[nivel] = aleatorio;
     nivel++;
@@ -222,8 +222,6 @@ void sequencia(int vetor[]) {
 
 void tela_Inicial() {
     int sair = 0;
-    Tback back;
-    InitBG(&back, 0, 0, 0.01, 0, LARGURA_TELA, ALTURA_TELA, -1, 1, animacao);
     while (!sair) {
         //Atualizando o record
         if (usuario.recorde < nivel) {
@@ -233,13 +231,11 @@ void tela_Inicial() {
 
         printaBG(&back);
         //Desenhando a tela inicial
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Genius");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER,
-                     "Jogar");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 150, ALLEGRO_ALIGN_CENTER,
-                     "Record");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 200, ALLEGRO_ALIGN_CENTER,
-                     "Sair");
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER, "Jogar");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 150, ALLEGRO_ALIGN_CENTER, "Instrucao");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 200, ALLEGRO_ALIGN_CENTER, "Record");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 250, ALLEGRO_ALIGN_CENTER, "Sair");
         al_flip_display();
         atualizarBG(&back);
 
@@ -251,11 +247,11 @@ void tela_Inicial() {
             if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
                 if (evento.mouse.x >= 276 && evento.mouse.x <= 356 && evento.mouse.y >= 268 && evento.mouse.y <= 284) {
                     modoJogo();
-                } else if (evento.mouse.x >= 269 && evento.mouse.x <= 371 && evento.mouse.y >= 318 &&
-                           evento.mouse.y <= 333) {//Fazer arquivo para guardar os records
+                } else if (evento.mouse.x >= 246 && evento.mouse.x <= 398 && evento.mouse.y >= 314 && evento.mouse.y <= 334) {
+                    instrucao();
+                } else if (evento.mouse.x >= 271 && evento.mouse.x <= 370 && evento.mouse.y >= 367 && evento.mouse.y <= 382) {
                     exibir_record();
-                } else if (evento.mouse.x >= 286 && evento.mouse.x <= 352 && evento.mouse.y >= 366 &&
-                           evento.mouse.y <= 385) {
+                }else if(evento.mouse.x >= 287 && evento.mouse.x <= 353 && evento.mouse.y >= 417 && evento.mouse.y <= 434){
                     sair = 1;
                 }
             } else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {//Quando o usuario clicar no X
@@ -265,16 +261,44 @@ void tela_Inicial() {
     }
 }
 
+void instrucao(){
+    bool sair = false;
+    font = al_load_font("VCR_OSD_MONO_1.001.ttf", 20, 0);
+    while (!sair){
+        printaBG(&back);
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Instrucao");
+        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER, "Botoes coloridos que emitem sons");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 125, ALLEGRO_ALIGN_CENTER, "harmonicos e se iluminam em sequencia.");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 150, ALLEGRO_ALIGN_CENTER, "Cabe ao jogador repetir o processo sem errar.");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 250, ALLEGRO_ALIGN_CENTER, "Voltar");
+        al_flip_display();
+        atualizarBG(&back);
+
+        // Verificamos se ha eventos na fila
+        while (!al_event_queue_is_empty(fila_eventos)) {
+            ALLEGRO_EVENT evento;
+            al_wait_for_event(fila_eventos, &evento);
+            // Se o evento foi de click do mouse
+            if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+                if (evento.mouse.x >= 285 && evento.mouse.x <= 354 && evento.mouse.y >= 413 && evento.mouse.y <= 425) {
+                    sair = true;
+                }
+            }
+            else if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {//Quando o usuario clicar no X
+                sair = true;
+            }
+        }
+    }
+    font = al_load_font("VCR_OSD_MONO_1.001.ttf", 30, 0);
+}
+
 void errou(int jogador) {
     al_rest(0.4);
     ALLEGRO_SAMPLE *sample = NULL;
     sample = al_load_sample("faustao.ogg");
     al_clear_to_color(al_map_rgb(82, 255, 238));
-    al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3 - 50, ALLEGRO_ALIGN_CENTER,
-                 "Sequencia Errada");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER,
-                  "Jogador %d perdeu", jogador);
-    al_play_sample(sample, 2.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+    al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3 - 50, ALLEGRO_ALIGN_CENTER, "Sequencia Errada");
+    al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Jogador %d perdeu", jogador);
     al_flip_display();
     al_rest(1.5);
     al_destroy_sample(sample);
@@ -298,8 +322,7 @@ void exibir_record() {
                 return;
             }
         } else {
-            al_draw_textf(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, y, ALLEGRO_ALIGN_CENTER,
-                          "Nome:%s ---- Record:%d", aux.nome, aux.recorde);
+            al_draw_textf(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, y, ALLEGRO_ALIGN_CENTER, "Nome:%s ---- Record:%d", aux.nome, aux.recorde);
             al_flip_display();
             y += 50;
         }
@@ -309,21 +332,16 @@ void exibir_record() {
 
 void modoJogo() {
     int sair = 0;
-    Tback back;
-    InitBG(&back, 0, 0, 0.01, 0, LARGURA_TELA, ALTURA_TELA, -1, 1, animacao);
     while (!sair) {
         //Zerando o jogo
         nivel = 0;
 
         //Desenhando o modo de jogo
         printaBG(&back);
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Genius");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER,
-                     "Um jogador");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 135, ALLEGRO_ALIGN_CENTER,
-                     "Dois jogadores");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 170, ALLEGRO_ALIGN_CENTER,
-                     "Tres jogadores");
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER, "Um jogador");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 135, ALLEGRO_ALIGN_CENTER, "Dois jogadores");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 170, ALLEGRO_ALIGN_CENTER, "Tres jogadores");
         al_flip_display();
         atualizarBG(&back);
 
@@ -337,13 +355,11 @@ void modoJogo() {
                     qtdJogadores = 1;
                     nivelJogo();
                     sair = 1;
-                } else if (evento.mouse.x >= 200 && evento.mouse.x <= 440 && evento.mouse.y >= 302 &&
-                           evento.mouse.y <= 319) {//Dois jogadores
+                } else if (evento.mouse.x >= 200 && evento.mouse.x <= 440 && evento.mouse.y >= 302 && evento.mouse.y <= 319) {//Dois jogadores
                     qtdJogadores = 2;
                     nivelJogo();
                     sair = 1;
-                } else if (evento.mouse.x >= 199 && evento.mouse.x <= 440 && evento.mouse.y >= 337 &&
-                           evento.mouse.y <= 355) {//Tres jogadores
+                } else if (evento.mouse.x >= 199 && evento.mouse.x <= 440 && evento.mouse.y >= 337 && evento.mouse.y <= 355) {//Tres jogadores
                     qtdJogadores = 3;
                     nivelJogo();
                     sair = 1;
@@ -357,21 +373,16 @@ void modoJogo() {
 
 void nivelJogo() {
     int sair = 0;
-    Tback back;
-    InitBG(&back, 0, 0, 0.01, 0, LARGURA_TELA, ALTURA_TELA, -1, 1, animacao);
     while (!sair) {
         //Zerando o jogo
         nivel = 0;
 
         printaBG(&back);
         //Desenhando o modo de jogo
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Genius");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER,
-                     "Nivel 1");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 135, ALLEGRO_ALIGN_CENTER,
-                     "Nivel 5");
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 170, ALLEGRO_ALIGN_CENTER,
-                     "Nivel 10");
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 3, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 100, ALLEGRO_ALIGN_CENTER, "Nivel 1");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 135, ALLEGRO_ALIGN_CENTER, "Nivel 5");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 3 + 170, ALLEGRO_ALIGN_CENTER, "Nivel 10");
         al_flip_display();
         atualizarBG(&back);
 
@@ -384,12 +395,10 @@ void nivelJogo() {
                 if (evento.mouse.x >= 259 && evento.mouse.x <= 374 && evento.mouse.y >= 264 && evento.mouse.y <= 284) {
                     genius(1);
                     sair = 1;
-                } else if (evento.mouse.x >= 259 && evento.mouse.x <= 380 && evento.mouse.y >= 299 &&
-                           evento.mouse.y <= 319) {//Nivel 5
+                } else if (evento.mouse.x >= 259 && evento.mouse.x <= 380 && evento.mouse.y >= 299 && evento.mouse.y <= 319) {//Nivel 5
                     genius(5);
                     sair = 1;
-                } else if (evento.mouse.x >= 250 && evento.mouse.x <= 388 && evento.mouse.y >= 334 &&
-                           evento.mouse.y <= 355) {//Nivel 10
+                } else if (evento.mouse.x >= 250 && evento.mouse.x <= 388 && evento.mouse.y >= 334 && evento.mouse.y <= 355) {//Nivel 10
                     genius(10);
                     sair = 1;
                 }
@@ -424,21 +433,20 @@ void genius(int level) {
     vermelho_som = al_load_sample("soundRed.ogg");
     //Nivel
     if (level != 1) {
-        gerando_nivel(level, vetor, 1, imagem, verde, amarelo, azul, vermelho);
+        gerando_nivel(level, vetor);
         if (qtdJogadores >= 2) {
             nivel = 0;
-            gerando_nivel(level, vetor2, 1, imagem, verde, amarelo, azul, vermelho);
+            gerando_nivel(level, vetor2);
         }
         if (qtdJogadores == 3) {
             nivel = 0;
-            gerando_nivel(level, vetor3, 1, imagem, verde, amarelo, azul, vermelho);
+            gerando_nivel(level, vetor3);
         }
         //Desenha o fundo
         al_draw_bitmap(imagem, 0, 0, 0);
         //Colocando os textos
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
-        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d",
-                      flag % qtdJogadores + 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
         al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
         al_draw_bitmap(som, 0, 0, 0);
         al_flip_display();
@@ -470,9 +478,8 @@ void genius(int level) {
             fila();
         }
 
-        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Macaxeira eh o poder");
-        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d",
-                      flag % qtdJogadores + 1);
+        al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Simon");
+        al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
         al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
         al_draw_bitmap(som, 0, 0, 0);
         al_flip_display();
@@ -494,8 +501,7 @@ void genius(int level) {
                     } else {
                         perdeu = verifica(vetor3[i], 0, verde, &i, 85, 40);
                     }
-                } else if (area_amarela(evento.mouse.x,
-                                        evento.mouse.y)) { // Verificamos se ele est\E1 sobre a regi\E3o no amarelo
+                } else if (area_amarela(evento.mouse.x, evento.mouse.y)) { // Verificamos se ele est\E1 sobre a regi\E3o no amarelo
                     if (flag_Som == 1) {
                         al_play_sample(amarelo_som, 5.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                     }
@@ -506,8 +512,7 @@ void genius(int level) {
                     } else {
                         perdeu = verifica(vetor3[i], 1, amarelo, &i, 85, 238);
                     }
-                } else if (area_azul(evento.mouse.x,
-                                     evento.mouse.y)) {// Verificamos se ele est\E1 sobre a regi\E3o no azul
+                } else if (area_azul(evento.mouse.x, evento.mouse.y)) {// Verificamos se ele est\E1 sobre a regi\E3o no azul
                     if (flag_Som == 1) {
                         al_play_sample(azul_som, 5.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                     }
@@ -518,8 +523,7 @@ void genius(int level) {
                     } else {
                         perdeu = verifica(vetor3[i], 2, azul, &i, 284, 238);
                     }
-                } else if (area_vermelha(evento.mouse.x,
-                                         evento.mouse.y)) {// Verificamos se ele est\E1 sobre a regi\E3o no vermelho
+                } else if (area_vermelha(evento.mouse.x, evento.mouse.y)) {// Verificamos se ele est\E1 sobre a regi\E3o no vermelho
                     if (flag_Som == 1) {
                         al_play_sample(vermelho_som, 5.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
                     }
@@ -530,8 +534,7 @@ void genius(int level) {
                     } else {
                         perdeu = verifica(vetor3[i], 3, vermelho, &i, 284, 40);
                     }
-                } else if (evento.mouse.x >= 0 && evento.mouse.x <= 56 && evento.mouse.y >= 0 &&
-                           evento.mouse.y <= 42) {//Caso a pessoa clique no icone do som
+                } else if (evento.mouse.x >= 0 && evento.mouse.x <= 56 && evento.mouse.y >= 0 && evento.mouse.y <= 42) {//Caso a pessoa clique no icone do som
                     if (flag_Som == 1) {//Verficando se o som vai ser reativado ou vai pro mudo
                         som = al_load_bitmap("Mudo.png");
                         flag_Som = 0;
@@ -544,30 +547,28 @@ void genius(int level) {
                 al_rest(0.2);
             } else if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP && !sair) {
                 al_draw_bitmap(imagem, 0, 0, 0);
-                al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER,
-                             "Macaxeira eh o poder");
-                al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER,
-                              "Jogador:%d", flag % qtdJogadores + 1);
-                al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d",
-                              nivel);
+                al_draw_text(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, 0, ALLEGRO_ALIGN_CENTER, "Simon");
+                al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 280, ALLEGRO_ALIGN_CENTER, "Jogador:%d", flag % qtdJogadores + 1);
+                al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, 310, ALLEGRO_ALIGN_CENTER, "Nivel:%d", nivel);
                 al_draw_bitmap(som, 0, 0, 0);
                 al_flip_display();
-                if (perdeu != 0) {//Quando alguem erra
+                if (perdeu != 0) {//Quando alguem errar
                     errou((flag % qtdJogadores) + 1);
                     if (qtdJogadores > 1) {//Se tiver mais de um jogador exibir os vencedores
                         if (flag % qtdJogadores == 0) {
-                            vencedor(2);
                             if (qtdJogadores > 2) {
-                                vencedor(3);
+                                vencedor("2 e 3");
+                            }else{
+                                vencedor("2");
                             }
                         } else if (flag % qtdJogadores == 1) {
-                            vencedor(1);
                             if (qtdJogadores > 2) {
-                                vencedor(3);
+                                vencedor("1 e 3");
+                            }else{
+                                vencedor("1");
                             }
                         } else if (flag % qtdJogadores == 2) {
-                            vencedor(1);
-                            vencedor(2);
+                            vencedor("1 e 2");
                         }
                     }
                     sair = 1;
@@ -589,7 +590,7 @@ void genius(int level) {
     al_destroy_sample(amarelo_som);
     al_destroy_sample(azul_som);
     al_destroy_sample(vermelho_som);
-    al_set_audio_stream_playmode(musica, ALLEGRO_PLAYMODE_LOOP);
+//    al_set_audio_stream_playing(musica, true);
 }
 
 int verifica(int jogada, int pos, ALLEGRO_BITMAP *cor, int *i, int posX, int posY) {
@@ -602,22 +603,17 @@ int verifica(int jogada, int pos, ALLEGRO_BITMAP *cor, int *i, int posX, int pos
     return 0;
 }
 
-void
-gerando_nivel(int level, int vetor[], int joga, ALLEGRO_BITMAP *imagem, ALLEGRO_BITMAP *verde, ALLEGRO_BITMAP *amarelo,
-              ALLEGRO_BITMAP *azul, ALLEGRO_BITMAP *vermelho) {
+void gerando_nivel(int level, int vetor[]) {
     //Gerando a sequencia do level
     for (int i = 0; i < level; i++) {
-        al_rest(1.0);
         sequencia(vetor);
     }
 }
 
-void vencedor(int jogador) {
+void vencedor(char jogador[]) {
     al_clear_to_color(al_map_rgb(82, 255, 238));
-    al_draw_textf(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 2 - 100, ALLEGRO_ALIGN_CENTER,
-                  "Fim de jogo");
-    al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 2, ALLEGRO_ALIGN_CENTER,
-                  "Jogador %d venceu", jogador);
+    al_draw_textf(font, al_map_rgb(0, 0, 0), LARGURA_TELA / 2, ALTURA_TELA / 2 - 100, ALLEGRO_ALIGN_CENTER, "Fim de jogo");
+    al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA / 2, ALLEGRO_ALIGN_CENTER, "Jogador %s venceu", jogador);
     al_flip_display();
     al_rest(1.5);
 }
@@ -626,15 +622,12 @@ void novoRecord() {
     int sair = 0;
     strcpy(str, "");
     al_clear_to_color(al_map_rgb(82, 255, 238));
-    al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 300, ALLEGRO_ALIGN_CENTER,
-                 "Novo recorde batido.");
-    al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 250, ALLEGRO_ALIGN_CENTER,
-                 "Digite seu nome: ");
+    al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 300, ALLEGRO_ALIGN_CENTER, "Novo recorde batido.");
+    al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 250, ALLEGRO_ALIGN_CENTER, "Digite seu nome: ");
     al_flip_display();
     while (!sair) {
         al_clear_to_color(al_map_rgb(82, 255, 238));
-        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 300, ALLEGRO_ALIGN_CENTER,
-                     "Novo recorde batido.");
+        al_draw_text(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 300, ALLEGRO_ALIGN_CENTER, "Novo recorde batido.");
         if (!al_event_queue_is_empty(fila_eventos)) {
             ALLEGRO_EVENT evento;
             al_wait_for_event(fila_eventos, &evento);
@@ -658,8 +651,7 @@ void novoRecord() {
             if (evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_ENTER) {
                 sair = 1;
             }
-            al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 250, ALLEGRO_ALIGN_CENTER,
-                          "Digite seu nome:%s", str);
+            al_draw_textf(font, al_map_rgb(255, 255, 255), LARGURA_TELA / 2, ALTURA_TELA - 250, ALLEGRO_ALIGN_CENTER, "Digite seu nome:%s", str);
             al_flip_display();
         }
     }
@@ -678,12 +670,12 @@ void salva_recorde() {
         if (status != 1) {
             if (!feof(arq)) {
                 printf("Erro na leitura do arquivo. \n");
+                break;
             }
         } else {
             i++;
         }
     }
-    printf("%d \n", i);
     if (i == 0) {//Nao tem nd no arquivo
         fseek(arq, 0, 0);
         status = fwrite(&usuario, sizeof(TUsuario), 1, arq);
@@ -722,8 +714,9 @@ void salva_recorde() {
                     fwrite(&usuario, sizeof(TUsuario), 1, arq);
                     fwrite(&aux[1], sizeof(TUsuario), 1, arq);
                 }
+                usuario.recorde = aux[1].recorde;
                 break;
-            } else if (aux[j].recorde > usuario.recorde && j == 1) {
+            } else if (aux[j].recorde >= usuario.recorde && j == 1) {
                 fseek(arq, 0, 2);
                 fwrite(&usuario, sizeof(TUsuario), 1, arq);
             }
@@ -748,8 +741,7 @@ void salva_recorde() {
     }
 }
 
-void InitBG(Tback *back, float x, float y, float velX, float velY, int largura, int altura, int dirX, int dirY,
-            ALLEGRO_BITMAP *imagem) {
+void InitBG(Tback *back, float x, float y, float velX, float velY, int largura, int altura, int dirX, int dirY, ALLEGRO_BITMAP *imagem) {
     back->x = x;
     back->y = y;
     back->altura = altura;
