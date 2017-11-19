@@ -2,15 +2,15 @@
 // Created by mariana on 05/11/17.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "allegro5/allegro.h"
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include "allegro5/allegro.h"
+#include "Header.h"
 #include "allegro5/allegro_image.h"
 #include "allegro5/allegro_audio.h"
 #include "allegro5/allegro_acodec.h"
 #include "allegro5/allegro_font.h"
 #include "allegro5/allegro_ttf.h"
-#include "Header.h"
 
 FILE *criarArquivo(char nome[]) {
     FILE *arq;
@@ -590,7 +590,7 @@ void genius(int level) {
     al_destroy_sample(amarelo_som);
     al_destroy_sample(azul_som);
     al_destroy_sample(vermelho_som);
-//    al_set_audio_stream_playing(musica, true);
+    al_set_audio_stream_playing(musica, true);
 }
 
 int verifica(int jogada, int pos, ALLEGRO_BITMAP *cor, int *i, int posX, int posY) {
